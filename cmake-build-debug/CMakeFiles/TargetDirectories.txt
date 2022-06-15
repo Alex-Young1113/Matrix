@@ -1,3 +1,3 @@
-C:/Users/natyia/CLionProjects/Matrix/cmake-build-debug/CMakeFiles/Matrix.dir
-C:/Users/natyia/CLionProjects/Matrix/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/natyia/CLionProjects/Matrix/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+D:/code/Matrix/cmake-build-debug/CMakeFiles/Matrix.dir
+D:/code/Matrix/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/code/Matrix/cmake-build-debug/CMakeFiles/rebuild_cache.dir
