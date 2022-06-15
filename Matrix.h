@@ -2,15 +2,17 @@
 #define MATRIX_MATRIX_H
 
 #include <unordered_map>
+#include <memory>
+#include <cstddef>
 template <class T>
 class Mat{
 public:
-    int row{};
-    int col{};
-    int step{};
-    int numOfElements{};
-    std::unordered_map<int,int> Map;
-    T *pData;
+    long long row;
+    long long col;
+    long long step;
+    long long numOfElements;
+    std::unordered_map<int,T> map;
+    std::shared_ptr<T[]> pData;
 
     Mat(int, int);
     T getIndex(int x, int y);

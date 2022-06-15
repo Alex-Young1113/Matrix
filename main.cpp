@@ -4,13 +4,13 @@
 using namespace std;
 
 int main() {
-    Mat<int> mat(3, 3);
-    mat.set(1,1,3);
-    cout << mat.get(1, 1) << endl;
-    mat.set(1,2,4);
-    mat.set(0,0, 1);
-    mat.set(2, 2, 5);
-    cout << mat.get(2, 2) << endl << mat.get(1, 0);
-
+    Mat<int> mat(300, 300);
+    for(int i = 0; i < 50; i ++){
+        for(int j = 0; j < 50; j ++){
+            mat.set(i, j, i + j);
+        }
+    }
+    Mat<int> mat2 = mat;
+    cout << mat.pData.use_count();
     return 0;
 }
