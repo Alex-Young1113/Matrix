@@ -2,22 +2,22 @@
 #define MATRIX_MATRIX_H
 
 #include <unordered_map>
-
+template <class T>
 class Mat{
 public:
-    int row;
-    int col;
-    int step;
-    int numOfElements;
+    int row{};
+    int col{};
+    int step{};
+    int numOfElements{};
     std::unordered_map<int,int> Map;
-    int *pData;
+    T *pData;
 
     Mat(int, int);
-    int getIndex(int x, int y);
+    T getIndex(int x, int y);
     bool isSparse();
-    void set(int, int, int);
+    void set(int, int, T);
     void toDense();
-    int get(int, int);
+    T get(int, int);
 };
 
 #endif //MATRIX_MATRIX_H

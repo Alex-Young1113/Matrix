@@ -1,9 +1,10 @@
 #include "Matrix.h"
+#include "Matrix.cpp"
 #include <iostream>
 using namespace std;
 
 int main() {
-    Mat mat(3, 3);
+    Mat<int> mat(3, 3);
     mat.set(1,1,3);
     cout << mat.get(1, 1) << endl;
     mat.set(1,2,4);
