@@ -12,21 +12,21 @@ public:
     }
 };
 
-template <typename T>
 class Mat{
 public:
     int col;
     int row;
     int step;
     int numOfElements;
-    std::unordered_map<Point,T> *Map;
-    T *pData;
+    std::unordered_map<int,int> Map;
+    int *pData;
 
-    Mat();
     Mat(int, int);
+    int getIndex(int x, int y);
     bool isSparse();
-    void set(int, int, T);
+    void set(int, int, int);
     void toDense();
+    int get(int, int);
 };
 
 #endif //MATRIX_MATRIX_H

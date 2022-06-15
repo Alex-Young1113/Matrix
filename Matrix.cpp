@@ -1,7 +1,7 @@
 #include "Matrix.h"
 
-template<typename T>
-Mat<T>::Mat(int row, int col){
+
+Mat::Mat(int row, int col){
     this->row = row;
     this->col = col;
     this->step = col;
@@ -9,9 +9,9 @@ Mat<T>::Mat(int row, int col){
     this->pData = nullptr;
 }
 
-template<typename T>
-bool Mat<T>::isSparse() {
-    if(this->numOfElements < std::min(this->row, this->col)){
+
+bool Mat::isSparse() {
+    if(this->numOfElements < std::max(this->row, this->col)){
         return true;
     }
     else{
@@ -19,24 +19,50 @@ bool Mat<T>::isSparse() {
     }
 }
 
-template<typename T>
-void Mat<T>::set(int row, int col, T val) {
+
+void Mat::set(int x, int y, int val) {
     if(this->isSparse()){
-        this->Map.insert(Point(row, col), val);
         this->numOfElements ++;
+        this->Map[this->getIndex(x, y)] = val;
+        if(!this->isSparse()){
+            this->toDense();
+        }
         if(!this->isSparse()){
             this->toDense();
         }
     }
     else{
-        this->pData[row * this->step + col] = val;
+        this->numOfElements ++;
+        this->pData[x * this->step + y] = val;
     }
 }
 
-template<typename T>
-void Mat<T>::toDense() {
-    this->pData = new T[this->row * this->col];
+void Mat::toDense() {
+    this->pData = new int[this->row * this->col];
+    for(int i = 0; i < this-> row; i ++){
+        for(int j = 0; j < this->col; j ++){
+            this->pData[getIndex(i, j)] = 0;
+        }
+    }
     for(auto kv : this->Map){
-        this->set(kv.first.x, kv.first.y, kv.second);
+        this->pData[kv.first] = kv.second;
+    }
+}
+
+int Mat::getIndex(int x, int y) {
+    return x * this->step + y;
+}
+
+int Mat::get(int x, int y){
+    if(this->isSparse()){
+        if(this->Map.find(this->getIndex(x, y)) == this->Map.end()){
+            return 0;
+        }
+        else{
+            return this->Map[this->getIndex(x, y)];
+        }
+    }
+    else{
+        return this->pData[this->getIndex(x, y)];
     }
 }
