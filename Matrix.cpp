@@ -22,7 +22,8 @@ Mat<T>::Mat(int row, int col, bool isSparse){
 template <class T>
 void Mat<T>::set(int x, int y, T val) {
     if(x > this->row || y > this->col){
-        throw std::exception();
+        std::cerr << "index " << "(" << x << "," << y << ") " << "out of range "<< "1-" << this->row << "," <<   "1-" << this->col << std::endl;
+        throw InvalidCoordinatesException("Index out of range");
     }
     x--;
     y--;
@@ -74,6 +75,10 @@ T Mat<T>::getIndex(int x, int y) {
 
 template <class T>
 T Mat<T>::get(int x, int y){
+    if(x > this->row || y > this->col){
+        std::cerr << "index " << "(" << x << "," << y << ") " << "out of range "<< "1-" << this->row << "," <<   "1-" << this->col << std::endl;
+        throw InvalidCoordinatesException("Index out of range");
+    }
     x--;
     y--;
     if(this->isSparse){
