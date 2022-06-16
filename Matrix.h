@@ -19,7 +19,7 @@ public:
     long long step = 0; // used for computing the index of next row
     bool isSparse = 0; // 0 for dense matrix and 1 for sparse matrix
     Mat(){};
-    Mat(int row, int col, bool isSparse = false); // construct an all zero matrix with x rows and y columns
+    Mat(int x, int y, bool isSparse = false); // construct an all zero matrix with x rows and y columns
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
     void set(int x, int y, T val); // set Mat[x][y] to val
