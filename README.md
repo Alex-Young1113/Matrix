@@ -12,3 +12,5 @@
 目前完成1， 2， 9完成一半，需要你们自己在用到新exception的时候到Exception.h里添加。
 
 y:4(finished) 7(not yet) 5(determinant,not yet)
+
+ps:少写点洋文，我看不懂^V^
