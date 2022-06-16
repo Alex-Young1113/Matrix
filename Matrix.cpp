@@ -40,10 +40,13 @@ void Mat<T>::toDense() {
     if(this->isSparse) {
         this->isSparse = false;
         this->pData = std::shared_ptr<T[]>(new T[this->row * this->col]);
+        long long iterator = 0;
         for (int i = 0; i < this->row; i++) {
             for (int j = 0; j < this->col; j++) {
-                this->pData[getIndex(i, j)] = 0;
+                iterator ++;
+                this->pData[iterator] = 0;
             }
+            iterator += this->step;
         }
         for (auto kv: (*this->pMap)) {
             this->pData[kv.first] = kv.second;
