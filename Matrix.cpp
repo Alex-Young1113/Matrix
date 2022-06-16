@@ -21,6 +21,9 @@ Mat<T>::Mat(int row, int col, bool isSparse){
 
 template <class T>
 void Mat<T>::set(int x, int y, T val) {
+    if(x > this->row || y > this->col){
+        throw std::exception();
+    }
     x--;
     y--;
     if(this->isSparse){
@@ -84,6 +87,50 @@ T Mat<T>::get(int x, int y){
     else{
         return this->pData[this->getIndex(x, y)];
     }
+}
+
+template <class T>
+void Mat<T>::print(int w){
+    for(int i = 1; i <= w; i ++){
+        std::cout << " ";
+    }
+    for(int i = 1; i <= this->col; i ++) {
+        std::cout << std::setw(w) << i << " ";
+    }
+    std::cout << std::endl;
+    for(int i = 1; i <= w; i ++){
+        std::cout << " ";
+    }
+    for(int i = 1; i <= (double)(w + 1) * (double)(this->col); i ++){
+        std::cout << "-";
+    }
+    std::cout << std::endl;
+    for(int i = 1; i <= this->col; i ++){
+        std::cout << std::setw(w - 1) << std::left << i << "|" << std::right;
+        for(int j = 1; j <= this->row; j ++){
+            std::cout << std::setw(w) << get(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+template<class T>
+Mat<T> Mat<T>::clone() {
+    Mat<T> rt(this->row, this->col, this->isSparse);
+    rt.step = this->step;
+    if(this->isSparse){
+        for (auto kv: (*this->pMap)) {
+            (*rt.pMap)[kv.first] = kv.second;
+        }
+    }
+    else{
+        for(int i = 1; i <= this->row; i ++){
+            for(int j = 1; j <= this->col; j ++){
+                rt.set(i, j, this->get(i, j));
+            }
+        }
+    }
+    return rt;
 }
 
 
