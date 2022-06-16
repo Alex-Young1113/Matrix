@@ -220,3 +220,16 @@ T Mat<T>::avg() {
         return sum / (this->row * this->col);
     }
 }
+/* Not recommended way to visit elements, because there is no col size check. i.e.,
+ * mat[row][col] will not throw exceptions even if col is beyond limit
+ * Use mat[row][col] to visit or change the row-th row and col-th col element of the matrix.
+ * */
+template<class T>
+T *Mat<T>::operator[](int n) {
+    T *rt = new T[this->col];
+    if (n <= 0 || n > this->row) {
+        throw (InvalidCoordinatesException("Index out of range"));
+    }
+    rt = (this->pData.get()) + (n - 1) * this->row - 1;
+    return rt;
+}
