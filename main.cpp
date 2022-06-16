@@ -4,13 +4,20 @@
 using namespace std;
 
 int main() {
-    Mat<int> mat(300, 300);
-    for(int i = 0; i < 50; i ++){
-        for(int j = 0; j < 50; j ++){
-            mat.set(i, j, i + j);
+    Mat<double> mat(60, 60, true);
+    mat.set(3, 3, 6.5);
+    Mat<double> &mat2 = mat;
+    for(int i = 1; i < 50; i ++){
+        for(int j = 1; j < 50; j ++){
+            mat.set(i, j, i + j + 0.5);
         }
     }
-    Mat<int> mat2 = mat;
-    cout << mat.pData.use_count();
+    cout << mat2.get(3, 3) << endl << mat.isSparse << endl;
+    mat.set(3, 3, 1919.81);
+    cout << mat2.get(3, 3) << endl;
+    mat.toDense();
+    cout << mat2.get(3, 3) << endl << mat.isSparse << endl;
+    mat.toSparse();
+    cout << mat2.get(3, 3) << endl << mat.isSparse << endl;
     return 0;
 }
