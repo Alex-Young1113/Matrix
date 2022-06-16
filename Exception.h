@@ -1,57 +1,49 @@
 #ifndef __EXCEPTIONS_H__
 
-#define	__EXCEPTIONS_H__
+#define    __EXCEPTIONS_H__
 
 #include <exception>
 #include <string>
+#include <utility>
+
+class Exception : public std::exception {
+
+public:
+
+    explicit Exception(std::string message) : exception(), message(std::move(message)) {}
 
 
-    class Exception : public std::exception
-    {
-
-    public:
-
-        explicit Exception(const std::string & message) : exception(), message(message)
-        {}
+    virtual ~Exception(void) throw() {}
 
 
-        virtual ~Exception(void) throw ()
-        {}
+    inline std::string getMessage(void) const {
+        return this->message;
+    }
 
 
-        inline std::string getMessage(void) const
-        {
-            return this->message;
-        }
+protected:
+
+    std::string message;
+
+};
 
 
-    protected:
+class InvalidDimensionsException : public Exception {
 
-        std::string message;
+public:
 
-    };
+    InvalidDimensionsException(const std::string &message) : Exception(message) {}
 
-
-    class InvalidDimensionsException : public Exception
-    {
-
-    public:
-
-        InvalidDimensionsException(const std::string & message) : Exception(message)
-        {}
-
-    };
+};
 
 
-    class InvalidCoordinatesException : public Exception
-    {
+class InvalidCoordinatesException : public Exception {
 
-    public:
+public:
 
-        InvalidCoordinatesException(const std::string & message) : Exception(message)
-        {}
+    InvalidCoordinatesException(const std::string &message) : Exception(message) {}
 
-    };
+};
 
 
 #endif
