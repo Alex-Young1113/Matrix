@@ -12,3 +12,7 @@
 目前完成1， 2， 9完成一半，需要你们自己在用到新exception的时候到Exception.h里添加。
 
 y:4(finished) 7(not yet) 5(determinant,not yet)
+
+ps:少写点洋文，我看不懂^V^
+
+jy:取元素用get(i, j)就行了，应该是不需要用到判断是不是稀疏矩阵的
