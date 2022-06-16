@@ -24,6 +24,10 @@ public:
     void toSparse(); // convert mat to dense matrix
     void set(int x, int y, T val); // set Mat[x][y] to val
     T get(int, int); // return Mat[x][y]
+    T max();
+    T min();
+    T sum();
+    T avg();
     void print(int width = 5); // print the matrix with specified width for each element
     Mat<T> clone(); // deep copy
 };
