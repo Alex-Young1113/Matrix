@@ -295,7 +295,7 @@ Mat<T> Mat<T>::conv(Mat<T> &kernel) {
                     int jj = j + (n - y);
                     // ignore input samples which are out of bound
                     if (ii >= 0 && ii < row && jj >= 0 && jj < col) {
-                        ans.set(i + 1, j + 1, ans[i + 1][j + 1] + (this->get(ii + 1, jj + 1)) * (kernel[m + 1][n + 1]));
+                        ans.set(i + 1, j + 1, ans.get(i+1, j+1) + (this->get(ii + 1, jj + 1)) * (kernel.get(m+1, n+1)));
                     }
                 }
             }
