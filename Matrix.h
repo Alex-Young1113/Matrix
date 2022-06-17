@@ -18,16 +18,21 @@ public:
     long long row = 0; // number of rows
     long long col = 0; // number of columns
     long long step = 0; // used for computing the index of next row
-    bool isSparse = 0; // 0 for dense matrix and 1 for sparse matrix
-    Mat() {};
+    bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
+    Mat() = default;;
 
+    Mat(int x, int y, T* list, int n);
     Mat(int x, int y, bool isSparse = false); // construct an all zero matrix with x rows and y columns
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
     void set(int x, int y, T val); // set Mat[x][y] to val
     T get(int, int); // return Mat[x][y]
-    T *operator[](int); // return Mat[x],the pointer pointed to the (row*step - 1)-th element of the pData
+    T *operator[](int) const; // return Mat[x],the pointer pointed to the (row*step - 1)-th element of the pData
     T max();
+
+    Mat<T> transposition();
+
+    Mat<T> convolution(Mat<T> &kernel);
 
     T min();
 

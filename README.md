@@ -16,3 +16,5 @@ y:4(finished) 7(not yet) 5(determinant,not yet)
 ps:少写点洋文，我看不懂^V^
 
 jy:取元素用get(i, j)就行了，应该是不需要用到判断是不是稀疏矩阵的
+
+ylj:卷积部分需要使用transpose操作，我就写上了；为了方便测试加了一个构造器可以直接用数组进行初始化。卷积部分初步测试通过

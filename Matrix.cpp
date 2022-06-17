@@ -220,16 +220,75 @@ T Mat<T>::avg() {
         return sum / (this->row * this->col);
     }
 }
+
 /* Not recommended way to visit elements, because there is no col size check. i.e.,
  * mat[row][col] will not throw exceptions even if col is beyond limit
  * Use mat[row][col] to visit or change the row-th row and col-th col element of the matrix.
  * */
 template<class T>
-T *Mat<T>::operator[](int n) {
+T *Mat<T>::operator[](int n) const {
     T *rt = new T[this->col];
     if (n <= 0 || n > this->row) {
         throw (InvalidCoordinatesException("Index out of range"));
     }
     rt = (this->pData.get()) + (n - 1) * this->row - 1;
     return rt;
+}
+
+template<class T>
+Mat<T> Mat<T>::convolution(Mat<T> &kernel) {
+    kernel = kernel.transposition().transposition(); // 翻转180度
+    // center
+    int x = kernel.row / 2;
+    int y = kernel.col / 2;
+    Mat<T> ans(row, col);
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            for (int m = 0; m < kernel.row; m++) // kernel rows
+            {
+                for (int n = 0; n < kernel.col; n++) // kernel columns
+                {
+                    int ii = i + (m - x);
+                    int jj = j + (n - y);
+                    // ignore input samples which are out of bound
+                    if (ii >= 0 && ii < row && jj >= 0 && jj < col) {
+                        ans.set(i + 1, j + 1, ans[i + 1][j + 1] + (this->get(ii + 1, jj + 1)) * (kernel[m + 1][n + 1]));
+                        // cout << i <<" " <<j <<" "<< matrix[ii][jj] << " " << kernel[m][n] << endl;
+                    }
+                }
+            }
+        }
+    }
+    return ans;
+}
+
+template<class T>
+Mat<T> Mat<T>::transposition() {
+    Mat<T> answer(col, row);
+    for (int i = 1; i <= col; i++) {
+        for (int j = 1; j <= row; j++) {
+            answer.set(i, j, this->get(j, i));
+        }
+    }
+    return answer;
+}
+
+template<class T>
+Mat<T>::Mat(int row, int col, T *list, int n) {
+    this->row = row;
+    this->col = col;
+    this->step = col;
+    this->isSparse = false;
+    if (n > row * col) throw (InvalidDimensionsException("InvalidDimensions"));
+    this->pData = std::shared_ptr<T[]>(new T[this->row * this->col]);
+    for (int i = 0; i < this->row; i++) {
+        for (int j = 0; j < this->col; j++) {
+            this->pData[getIndex(i, j)] = 0;
+        }
+    }
+    for (int i = 1; i <= row; ++i) {
+        for (int j = 1; j <= col; ++j) {
+            this->set(j, i, list[i - 1 + (j - 1) * this->step]);
+        }
+    }
 }
