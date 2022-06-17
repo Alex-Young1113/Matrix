@@ -32,7 +32,7 @@ class InvalidDimensionsException : public Exception {
 
 public:
 
-    explicit InvalidDimensionsException(const std::string &message) : Exception(message) {}
+    InvalidDimensionsException(const std::string &message) : Exception(message) {}
 
 };
 
@@ -41,16 +41,9 @@ class InvalidCoordinatesException : public Exception {
 
 public:
 
-    explicit InvalidCoordinatesException(const std::string &message) : Exception(message) {}
+    InvalidCoordinatesException(const std::string &message) : Exception(message) {}
 
 };
 
-class OperatorAddition_MatrixNotMatched : public Exception {
-
-public:
-
-    OperatorAddition_MatrixNotMatched(const std::string &message) : Exception(message) {}
-
-};
 
 #endif

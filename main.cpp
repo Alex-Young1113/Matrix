@@ -9,11 +9,14 @@ int main() {
     Mat<int> mat1(3, 3, l1, 9);
     int l2[16]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     Mat<int> mat2(4, 4, l2, 16);
+    cout << "mat1" << endl;
     mat1.print();
+    cout << "mat2" << endl;
+
     mat2.print();
 
-    Mat<int> conv = mat2.conv(mat1);
-
-    conv.print();
+    Mat<int> tmp = mat2.transpose();
+    cout << "tmp:" << endl;
+    tmp.print();
     return 0;
 }

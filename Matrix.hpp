@@ -161,7 +161,7 @@ void Mat<T>::print(int w) {
     for (int i = 1; i <= w; i++) {
         std::cout << " ";
     }
-    for (int i = 1; i <= (double) (w + 1) * (double) (this->col); i++) {
+    for (int i = 1; i <= (long long) (w + 1) * (long long) (this->col); i++) {
         std::cout << "-";
     }
     std::cout << std::endl;
@@ -172,6 +172,7 @@ void Mat<T>::print(int w) {
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 }
 
 template<class T>
@@ -195,87 +196,47 @@ Mat<T> Mat<T>::clone() {
 template<class T>
 /* return the maximum element of the matrix */
 T Mat<T>::max() {
-    if (this->isSparse) {
-        T max = 0;
-        for (auto kv: (*this->pMap)) {
-            if (kv.second > max) {
-                max = kv.second;
+    T max = this->get(1,1);
+    for (int i = 1; i <= this->row; i++) {
+        for (int j = 1; j <= this->col; j++) {
+            if (this->get(i, j) > max) {
+                max = this->get(i, j);
             }
         }
-        return max;
-    } else {
-        T max = 0;
-        for (int i = 1; i <= this->row; i++) {
-            for (int j = 1; j <= this->col; j++) {
-                if (this->get(i, j) > max) {
-                    max = this->get(i, j);
-                }
-            }
-        }
-        return max;
     }
+    return max;
 }
 
 template<class T>
 /*return the minimum value of the matrix */
 T Mat<T>::min() {
-    if (this->isSparse) {
-        T min = 0;
-        for (auto kv: (*this->pMap)) {
-            if (kv.second < min) {
-                min = kv.second;
+    T min = this->get(1,1);
+    for (int i = 1; i <= this->row; i++) {
+        for (int j = 1; j <= this->col; j++) {
+            if (this->get(i, j) < min) {
+                min = this->get(i, j);
             }
         }
-        return min;
-    } else {
-        T min = 0;
-        for (int i = 1; i <= this->row; i++) {
-            for (int j = 1; j <= this->col; j++) {
-                if (this->get(i, j) < min) {
-                    min = this->get(i, j);
-                }
-            }
-        }
-        return min;
     }
+    return min;
 }
 
 template<class T>
 T Mat<T>::sum() {
-    if (this->isSparse) {
-        T sum = 0;
-        for (auto kv: (*this->pMap)) {
-            sum += kv.second;
-        }
-        return sum;
-    } else {
-        T sum = 0;
-        for (int i = 1; i <= this->row; i++) {
-            for (int j = 1; j <= this->col; j++) {
+    T sum = this->get(1,1);
+    for (int i = 1; i <= this->row; i++) {
+        for (int j = 1; j <= this->col; j++) {
+            if(i != 1 || j != 1) {
                 sum += this->get(i, j);
             }
         }
-        return sum;
     }
+    return sum;
 }
 
 template<class T>
 T Mat<T>::avg() {
-    if (this->isSparse) {
-        T sum = 0;
-        for (auto kv: (*this->pMap)) {
-            sum += kv.second;
-        }
-        return sum / (*this->pMap).size();
-    } else {
-        T sum = 0;
-        for (int i = 1; i <= this->row; i++) {
-            for (int j = 1; j <= this->col; j++) {
-                sum += this->get(i, j);
-            }
-        }
-        return sum / (this->row * this->col);
-    }
+    return this->sum() / (this->row * this->col);
 }
 
 template<class T>
@@ -309,7 +270,9 @@ Mat<T> Mat<T>::transpose() {
     Mat<T> answer(col, row);
     for (int i = 1; i <= col; i++) {
         for (int j = 1; j <= row; j++) {
-            answer.set(i, j, this->get(j, i));
+            T tmp  = this->get(j, i);
+            answer.set(j, i, this->get(i, j));
+            answer.set(i, j, tmp);
         }
     }
     return answer;
@@ -338,7 +301,7 @@ Mat<T>::Mat(int row, int col, T *list, int n) {
 template<class T2>
 Mat<T2> operator+(Mat<T2> &lhs, Mat<T2> &rhs) {
     if (lhs.col != rhs.col || lhs.row != lhs.col || rhs.col != rhs.row)
-        throw (OperatorAddition_MatrixNotMatched("Matrix not matched needs for addition"));
+        throw (InvalidDimensionsException("Matrix not matched needs for addition"));
 
     Mat<T2> ans(lhs.row, lhs.row);
     for (int i = 1; i <= lhs.row; ++i) {
@@ -353,7 +316,7 @@ Mat<T2> operator+(Mat<T2> &lhs, Mat<T2> &rhs) {
 template<class T2>
 Mat<T2> operator-(Mat<T2> &lhs, Mat<T2> &rhs) {
     if (lhs.col != rhs.col || lhs.row != lhs.col || rhs.col != rhs.row)
-        throw (OperatorAddition_MatrixNotMatched("Matrix not matched needs for addition"));
+        throw (InvalidDimensionsException("Matrix not matched needs for addition"));
 
     Mat<T2> ans(lhs.row, lhs.row);
     for (int i = 1; i <= lhs.row; ++i) {
