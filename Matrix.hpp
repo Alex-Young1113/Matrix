@@ -22,6 +22,7 @@ public:
     long long step = 0; // used for computing the index of next row
     bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
     Mat() = default;;
+
     Mat(int row, int col, std::vector<T> *list = nullptr, bool isSparse = false); // construct an all zero matrix with x rows and y columns
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
@@ -348,10 +349,10 @@ Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
 }
 
 template<class T2>
-Mat<T2> Mat<T2>::getsubmatrix( int rowstart, int rowend, int colstart, int colend){
-    if(colend < colstart || rowend < rowstart ||
-       colend > this->col || rowend > this->row ||
-       colstart < 0 || rowend < 0)
+Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend){
+    if(colend > colstart || rowend > rowstart ||
+        colend > this->col || rowend > this->row ||
+            colstart < 1 || rowend < 1)
         throw(InvalidCoordinatesException("Coordinate for submatrix is out of bound."));
     colstart --;
     colend --;
@@ -368,7 +369,7 @@ Mat<T2> Mat<T2>::getsubmatrix( int rowstart, int rowend, int colstart, int colen
 
 template<class T2>
 void Mat<T2>::QR(Mat<T2>& Q, Mat<T2>& R){
-
+    
 
 }
 
@@ -388,13 +389,13 @@ int Mat<T2>::rank(){
             }
             if (ok) break;
         }
-
+    
         if (row <= temp.row && col <= temp.col) {
             for (int j = col; j <= temp.col; j++){
-                T2 mid = temp.get(0, j);
-                temp.set(0, j, temp.get(i, j));
-                temp.set(i, j, temp.get(row, j));
-                temp.set(row, j, temp.get(0, j));
+               T2 mid = temp.get(0, j);
+               temp.set(0, j, temp.get(i, j));
+               temp.set(i, j, temp.get(row, j));
+               temp.set(row, j, temp.get(0, j));
             }
         }
         T2 a = 0;
