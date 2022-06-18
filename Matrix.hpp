@@ -22,7 +22,9 @@ public:
     long long step = 0; // used for computing the index of next row
     bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
     Mat() = default;;
-    Mat(int row, int col, std::vector<T> *list = nullptr, bool isSparse = false); // construct an all zero matrix with x rows and y columns
+
+    Mat(int row, int col, std::vector<T> *list = nullptr,
+        bool isSparse = false); // construct an all zero matrix with x rows and y columns
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
     void set(int x, int y, T val); // set Mat[x][y] to val
@@ -58,9 +60,10 @@ public:
     void print(int width = 5); // print the matrix with specified width for each element
     Mat<T> clone(); // deep copy
     int rank();
+
     Mat<T> getsubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
 private:
-    void QR(Mat<T>& Q, Mat<T>& R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
+    void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
 };
 
 template<class T>
@@ -79,15 +82,14 @@ Mat<T>::Mat(int row, int col, std::vector<T> *list, bool isSparse) {
             }
         }
     }
-    if(list != nullptr){
+    if (list != nullptr) {
         int cnt = 0;
-        for(int i = 1; i <= row; i ++){
-            for(int j = 1; j <= col; j ++){
-                if(cnt < (*list).size()){
+        for (int i = 1; i <= row; i++) {
+            for (int j = 1; j <= col; j++) {
+                if (cnt < (*list).size()) {
                     this->set(i, j, (*list)[cnt]);
-                    cnt ++;
-                }
-                else{
+                    cnt++;
+                } else {
                     break;
                 }
             }
@@ -216,7 +218,7 @@ Mat<T> Mat<T>::clone() {
 template<class T>
 /* return the maximum element of the matrix */
 T Mat<T>::max() {
-    T max = this->get(1,1);
+    T max = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
             if (this->get(i, j) > max) {
@@ -230,7 +232,7 @@ T Mat<T>::max() {
 template<class T>
 /*return the minimum value of the matrix */
 T Mat<T>::min() {
-    T min = this->get(1,1);
+    T min = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
             if (this->get(i, j) < min) {
@@ -243,10 +245,10 @@ T Mat<T>::min() {
 
 template<class T>
 T Mat<T>::sum() {
-    T sum = this->get(1,1);
+    T sum = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
-            if(i != 1 || j != 1) {
+            if (i != 1 || j != 1) {
                 sum += this->get(i, j);
             }
         }
@@ -276,7 +278,8 @@ Mat<T> Mat<T>::conv(Mat<T> &kernel) {
                     int jj = j + (n - y);
                     // ignore input samples which are out of bound
                     if (ii >= 0 && ii < row && jj >= 0 && jj < col) {
-                        ans.set(i + 1, j + 1, ans.get(i+1, j+1) + (this->get(ii + 1, jj + 1)) * (kernel.get(m+1, n+1)));
+                        ans.set(i + 1, j + 1,
+                                ans.get(i + 1, j + 1) + (this->get(ii + 1, jj + 1)) * (kernel.get(m + 1, n + 1)));
                     }
                 }
             }
@@ -351,15 +354,15 @@ Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
 }
 
 template<class T2>
-Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend){
-    if(colend > colstart || rowend > rowstart ||
+Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend) {
+    if (colend > colstart || rowend > rowstart ||
         colend > this->col || rowend > this->row ||
-            colstart < 1 || rowend < 1)
-        throw(InvalidCoordinatesException("Coordinate for submatrix is out of bound."));
-    colstart --;
-    colend --;
-    rowstart --;
-    rowend --;
+        colstart < 1 || rowend < 1)
+        throw (InvalidCoordinatesException("Coordinate for submatrix is out of bound."));
+    colstart--;
+    colend--;
+    rowstart--;
+    rowend--;
     Mat<T2> ans;
     ans.col = colend - colstart + 1;
     ans.row = rowend - rowstart + 1;
@@ -370,20 +373,20 @@ Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend
 }
 
 template<class T2>
-void Mat<T2>::QR(Mat<T2>& Q, Mat<T2>& R){
-    
+void Mat<T2>::QR(Mat<T2> &Q, Mat<T2> &R) {
+
 
 }
 
 template<class T2>
-int Mat<T2>::rank(){
+int Mat<T2>::rank() {
     int re = 0;
     Mat<T2> temp = this->clone();
-    for (int i = 1; i <= temp.row; i++){
+    for (int i = 1; i <= temp.row; i++) {
         int row, col;
-        for (col = i; col <= temp.col; col++){
+        for (col = i; col <= temp.col; col++) {
             bool ok = false;
-            for (row = i; row <= temp.row; row ++){
+            for (row = i; row <= temp.row; row++) {
                 if (fabs(temp.get(row, col) > 1e-10)) {
                     ok = true;
                     break;
@@ -391,21 +394,21 @@ int Mat<T2>::rank(){
             }
             if (ok) break;
         }
-    
+
         if (row <= temp.row && col <= temp.col) {
-            for (int j = col; j <= temp.col; j++){
-               T2 mid = temp.get(0, j);
-               temp.set(0, j, temp.get(i, j));
-               temp.set(i, j, temp.get(row, j));
-               temp.set(row, j, temp.get(0, j));
+            for (int j = col; j <= temp.col; j++) {
+                T2 mid = temp.get(0, j);
+                temp.set(0, j, temp.get(i, j));
+                temp.set(i, j, temp.get(row, j));
+                temp.set(row, j, temp.get(0, j));
             }
         }
         T2 a = 0;
-        for(int j = i + 1; j <= temp.row; j++){
-            a = -temp.get(j, col)/temp.get(i, col);
-            for (int k = col; k <= temp.row; k++){
+        for (int j = i + 1; j <= temp.row; j++) {
+            a = -temp.get(j, col) / temp.get(i, col);
+            for (int k = col; k <= temp.row; k++) {
                 T2 mid = temp.get(j, k);
-                mid += a*temp.get(i, k);
+                mid += a * temp.get(i, k);
                 temp.set(j, k, mid);
             }
         }
@@ -444,20 +447,35 @@ Mat<T2> operator*(std::vector<T2> lhs, Mat<T2> &rhs) {
 
 template<class T2>
 Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
-    if(lhs.col != rhs.row){
+    if (lhs.col != rhs.row) {
         throw InvalidDimensionsException("");
     }
     Mat<T2> ans(lhs.row, rhs.col);
-    for(int i = 1; i <= ans.row; i ++){
-        for(int j = 1; j <= ans.col; j ++){
+    for (int i = 1; i <= ans.row; i++) {
+        for (int j = 1; j <= ans.col; j++) {
             T2 sum = 0;
-            for(int k = 1; k <= lhs.col; k ++){
+            for (int k = 1; k <= lhs.col; k++) {
                 sum += lhs.get(i, k) * rhs.get(k, j);
             }
             ans.set(i, j, sum);
         }
     }
     return ans;
+}
+
+
+template<class T2>
+Mat<T2> operator*(Mat<T2> &lhs, std::vector<T2> &rhs) {
+    if (lhs.col == 1 && lhs.col == rhs.size()) {
+        Mat<T2> rhsMat(1, rhs.size(), &rhs);
+        return lhs * rhsMat;
+    } else if (lhs.col != 1 && lhs.col == rhs.size()) {
+        Mat<T2> rhsMat(rhs.size(), 1, &rhs);
+        return lhs * rhsMat;
+    } else {
+        std::cerr << "Dimension not matched for multiply" << "\n";
+        throw (Multiply_DimensionsNotMatched(""));
+    }
 }
 
 #endif //MATRIX_MATRIX_HPP
