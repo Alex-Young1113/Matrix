@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <cmath>
 #include "Exception.h"
-//asd
+
 template<class T>
 class Mat {
 
@@ -22,7 +22,6 @@ public:
     long long step = 0; // used for computing the index of next row
     bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
     Mat() = default;;
-
     Mat(int row, int col, std::vector<T> *list = nullptr, bool isSparse = false); // construct an all zero matrix with x rows and y columns
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
@@ -46,6 +45,9 @@ public:
 
     template<class T2>
     friend Mat<T2> operator*(Mat<T2> &lhs, double rhs);
+
+    template<class T2>
+    friend Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs);
 
     T min();
 
@@ -438,6 +440,24 @@ Mat<T2> operator*(std::vector<T2> lhs, Mat<T2> &rhs) {
         std::cerr << "Dimension not matched for multiply" << "\n";
         throw (Multiply_DimensionsNotMatched(""));
     }
+}
+
+template<class T2>
+Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
+    if(lhs.col != rhs.row){
+        throw InvalidDimensionsException("");
+    }
+    Mat<T2> ans(lhs.row, rhs.col);
+    for(int i = 1; i <= ans.row; i ++){
+        for(int j = 1; j <= ans.col; j ++){
+            T2 sum = 0;
+            for(int k = 1; k <= lhs.col; k ++){
+                sum += lhs.get(i, k) * rhs.get(k, j);
+            }
+            ans.set(i, j, sum);
+        }
+    }
+    return ans;
 }
 
 #endif //MATRIX_MATRIX_HPP
