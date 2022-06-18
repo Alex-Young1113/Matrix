@@ -59,7 +59,7 @@ public:
 
 private:
     Mat<T> getsubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
-    void QR(Mat<T>& Q, Mat<T>& R); // 利用householder法进行QR分解，这个方法并不是很成熟，就不让外部调用了
+    void QR(Mat<T>& Q, Mat<T>& R); // 利用初等变换进行QR分解，这个方法并不是很成熟，就不让外部调用了
 };
 
 template<class T>
