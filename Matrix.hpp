@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <cmath>
 #include "Exception.h"
-//asd
+
 template<class T>
 class Mat {
 
@@ -45,6 +45,9 @@ public:
 
     template<class T2>
     friend Mat<T2> operator*(Mat<T2> &lhs, double rhs);
+
+    template<class T2>
+    friend Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs);
 
     T min();
 
@@ -410,6 +413,24 @@ int Mat<T2>::rank(){
     }
 
     return re;
+}
+
+template<class T2>
+Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
+    if(lhs.col != rhs.row){
+        throw InvalidDimensionsException("");
+    }
+    Mat<T2> ans(lhs.row, rhs.col);
+    for(int i = 1; i <= ans.row; i ++){
+        for(int j = 1; j <= ans.col; j ++){
+            T2 sum = 0;
+            for(int k = 1; k <= lhs.col; k ++){
+                sum += lhs.get(i, k) * rhs.get(k, j);
+            }
+            ans.set(i, j, sum);
+        }
+    }
+    return ans;
 }
 
 #endif //MATRIX_MATRIX_HPP
