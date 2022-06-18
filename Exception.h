@@ -45,5 +45,13 @@ public:
 
 };
 
+class Multiply_DimensionsNotMatched : public Exception {
+
+public:
+
+    Multiply_DimensionsNotMatched(const std::string &message) : Exception(message) {}
+
+};
+
 
 #endif
