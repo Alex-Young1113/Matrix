@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 #include "Exception.h"
 
 template<class T>
@@ -55,11 +56,11 @@ public:
 
     void print(int width = 5); // print the matrix with specified width for each element
     Mat<T> clone(); // deep copy
-    
+    int rank();
 
 private:
     Mat<T> getsubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
-    void QR(Mat<T>& Q, Mat<T>& R); // 利用初等变换进行QR分解，这个方法并不是很成熟，就不让外部调用了
+    void QR(Mat<T>& Q, Mat<T>& R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
 };
 
 template<class T>
@@ -375,7 +376,49 @@ Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend
 
 template<class T2>
 void Mat<T2>::QR(Mat<T2>& Q, Mat<T2>& R){
+    
 
+}
+
+template<class T2>
+int Mat<T2>::rank(){
+    int re = 0;
+    Mat<T2> temp = this->clone();
+    for (int i = 1; i <= temp.row; i++){
+        int row, col;
+        for (col = i; col <= temp.col; col++){
+            bool ok = false;
+            for (row = i; row <= temp.row; row ++){
+                if (fabs(temp.get(row, col) > 1e-10)) {
+                    ok = true;
+                    break;
+                }
+            }
+            if (ok) break;
+        }
+    
+        if (row <= temp.row && col <= temp.col) {
+            for (int j = col; j <= temp.col; j++){
+               T2 mid = temp.get(0, j);
+               temp.set(0, j, temp.get(i, j));
+               temp.set(i, j, temp.get(row, j));
+               temp.set(row, j, temp.get(0, j));
+            }
+        }
+        T2 a = 0;
+        for(int j = i + 1; j <= temp.row; j++){
+            a = -temp.get(j, col)/temp.get(i, col);
+            for (int k = col; k <= temp.row; k++){
+                T2 mid = temp.get(j, k);
+                mid += a*temp.get(i, k);
+                temp.set(j, k, mid);
+            }
+        }
+        re++;
+    }
+    else break;
+
+    return re;
 }
 
 #endif //MATRIX_MATRIX_HPP
