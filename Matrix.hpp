@@ -12,7 +12,6 @@
 
 template<class T>
 class Mat {
-
     T getIndex(int x, int y); // return the offset of Mat[x][y]
 public:
     std::shared_ptr<std::unordered_map<int, T>> pMap; // hashmap to store elements in sparse matrix
@@ -21,7 +20,7 @@ public:
     long long col = 0; // number of columns
     long long step = 0; // used for computing the index of next row
     bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
-    Mat() = default;;
+    Mat() = default;
 
     Mat(int row, int col, std::vector<T> *list = nullptr,
         bool isSparse = false); // construct an all zero matrix with x rows and y columns
@@ -33,6 +32,8 @@ public:
     T max();
 
     Mat<T> transpose();
+
+    Mat<T> resize(int x, int y);
 
     Mat<T> conv(Mat<T> &kernel);
 
@@ -199,7 +200,8 @@ void Mat<T>::print(int w) {
 
 template<class T>
 Mat<T> Mat<T>::clone() {
-    Mat<T> rt(this->row, this->col, this->isSparse);
+    std::vector<T> tmp(this->row * this->col, 0);
+    Mat<T> rt(this->row, this->col, &tmp, this->isSparse);
     rt.step = this->step;
     if (this->isSparse) {
         for (auto kv: (*this->pMap)) {
@@ -354,7 +356,7 @@ Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
 }
 
 template<class T2>
-Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend) {
+Mat<T2> Mat<T2>::getsubmatrix(int rowstart, int rowend, int colstart, int colend) {
     if (colend > colstart || rowend > rowstart ||
         colend > this->col || rowend > this->row ||
         colstart < 1 || rowend < 1)
@@ -397,10 +399,10 @@ int Mat<T2>::rank() {
 
         if (row <= temp.row && col <= temp.col) {
             for (int j = col; j <= temp.col; j++) {
-                T2 mid = temp.get(0, j);
-                temp.set(0, j, temp.get(i, j));
-                temp.set(i, j, temp.get(row, j));
-                temp.set(row, j, temp.get(0, j));
+                T2 mid = temp.get(1, j);
+                temp.set(1, j+1, temp.get(i+1, j+1));
+                temp.set(i, j+1, temp.get(row, j));
+                temp.set(row, j, temp.get(1, j));
             }
         }
         T2 a = 0;
@@ -419,7 +421,7 @@ int Mat<T2>::rank() {
 }
 
 template<class T2>
-Mat<T2> operator*(std::vector<T2> lhs, Mat<T2> &rhs) {
+Mat<T2> operator*(std::vector<T2> &lhs, Mat<T2> &rhs) {
     if (rhs.row == 1 && rhs.col == lhs.size()) {
         Mat<T2> ans(rhs.col, rhs.col);
         std::vector<T2> list;
@@ -463,6 +465,28 @@ Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
     return ans;
 }
 
+template<class T>
+Mat<T> Mat<T>::resize(int x, int y) {
+    Mat<T> ans (x, y);
+    int i_ = 1;
+    int j_ = 1;
+    for(int i = 1; i <= x; i ++){
+        for(int j = 1; j <= y; j ++){
+            if(i_ <= this->row && j_ <= this->col){
+                ans.set(i, j, this->get(i_, j_));
+            }
+            else{
+                ans.set(i, j, 0);
+            }
+            j_ ++;
+            if(j_ == this->col){
+                j_ = 0;
+                i_ ++;
+            }
+        }
+    }
+    return ans;
+}
 
 template<class T2>
 Mat<T2> operator*(Mat<T2> &lhs, std::vector<T2> &rhs) {

@@ -12,6 +12,6 @@ int main() {
     vector<int> vv{1, 2, 1};
     Mat<int> mm = mat1 * vv;
 
-    mm.print();
+   mm.rank();
     return 0;
 }
