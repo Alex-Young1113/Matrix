@@ -19,8 +19,7 @@ int main() {
     Mat<int> mat3 = mat2.transpose();
     cout << "mat3:" << endl;
     mat3.print();
-    Mat<int> mat4 = 4.7 * mat2;
-    cout << "mat4:" << endl;
+    Mat<int> mat4 = mat2.getsubmatrix(2,5,2,4);
     mat4.print();
     return 0;
 }
