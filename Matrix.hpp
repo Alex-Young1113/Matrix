@@ -31,11 +31,15 @@ public:
 
     T max();
 
+
     Mat<T> transpose();
 
     Mat<T> resize(int x, int y);
 
     Mat<T> conv(Mat<T> &kernel);
+
+    template<class T2>
+    friend Mat<T2> dotMuilt(Mat<T2> &lhs, Mat<T2> &rhs);
 
     template<class T2>
     friend Mat<T2> operator+(Mat<T2> &lhs, Mat<T2> &rhs);
@@ -65,6 +69,7 @@ public:
     Mat<T> getsubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
 private:
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
+    Mat<T> gaussianEliminate();
 };
 
 template<class T>
@@ -376,49 +381,8 @@ Mat<T2> Mat<T2>::getsubmatrix(int rowstart, int rowend, int colstart, int colend
 
 template<class T2>
 void Mat<T2>::QR(Mat<T2> &Q, Mat<T2> &R) {
-
-
 }
 
-template<class T2>
-int Mat<T2>::rank() {
-    int re = 0;
-    Mat<T2> temp = this->clone();
-    for (int i = 1; i <= temp.row; i++) {
-        int row, col;
-        for (col = i; col <= temp.col; col++) {
-            bool ok = false;
-            for (row = i; row <= temp.row; row++) {
-                if (fabs(temp.get(row, col) > 1e-10)) {
-                    ok = true;
-                    break;
-                }
-            }
-            if (ok) break;
-        }
-
-        if (row <= temp.row && col <= temp.col) {
-            for (int j = col; j <= temp.col; j++) {
-                T2 mid = temp.get(1, j);
-                temp.set(1, j+1, temp.get(i+1, j+1));
-                temp.set(i, j+1, temp.get(row, j));
-                temp.set(row, j, temp.get(1, j));
-            }
-        }
-        T2 a = 0;
-        for (int j = i + 1; j <= temp.row; j++) {
-            a = -temp.get(j, col) / temp.get(i, col);
-            for (int k = col; k <= temp.row; k++) {
-                T2 mid = temp.get(j, k);
-                mid += a * temp.get(i, k);
-                temp.set(j, k, mid);
-            }
-        }
-        re++;
-    }
-
-    return re;
-}
 
 template<class T2>
 Mat<T2> operator*(std::vector<T2> &lhs, Mat<T2> &rhs) {
@@ -430,7 +394,7 @@ Mat<T2> operator*(std::vector<T2> &lhs, Mat<T2> &rhs) {
                 list.template emplace_back(lhs[i] * rhs.get(1, j + 1));
             }
         }
-        return Mat<T2>((int) rhs.col, (int) rhs.col, &list);
+        return Mat<T2>(rhs.col, rhs.col, &list);
     } else if (rhs.row != 1 && rhs.row == lhs.size()) {
         std::vector<T2> list;
         for (int i = 0; i < rhs.col; ++i) {
@@ -467,21 +431,20 @@ Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
 
 template<class T>
 Mat<T> Mat<T>::resize(int x, int y) {
-    Mat<T> ans (x, y);
+    Mat<T> ans(x, y);
     int i_ = 1;
     int j_ = 1;
-    for(int i = 1; i <= x; i ++){
-        for(int j = 1; j <= y; j ++){
-            if(i_ <= this->row && j_ <= this->col){
+    for (int i = 1; i <= x; i++) {
+        for (int j = 1; j <= y; j++) {
+            if (i_ <= this->row && j_ <= this->col) {
                 ans.set(i, j, this->get(i_, j_));
-            }
-            else{
+            } else {
                 ans.set(i, j, 0);
             }
-            j_ ++;
-            if(j_ == this->col){
+            j_++;
+            if (j_ == this->col) {
                 j_ = 0;
-                i_ ++;
+                i_++;
             }
         }
     }
@@ -500,6 +463,19 @@ Mat<T2> operator*(Mat<T2> &lhs, std::vector<T2> &rhs) {
         std::cerr << "Dimension not matched for multiply" << "\n";
         throw (Multiply_DimensionsNotMatched(""));
     }
+}
+
+template<class T>
+Mat<T> dotMuilt(Mat<T> &lhs, Mat<T> &rhs) {
+    if (lhs.row != rhs.row || lhs.col != rhs.col)
+        throw (Multiply_DimensionsNotMatched(""));
+    std::vector<T> list;
+    for (int i = 0; i < lhs.row; ++i) {
+        for (int j = 0; j < lhs.col; ++j) {
+            list.template emplace_back(lhs.get(i + 1, j + 1) * rhs.get(i + 1, j + 1));
+        }
+    }
+    return Mat<T>(rhs.row, rhs.col, &list);
 }
 
 #endif //MATRIX_MATRIX_HPP
