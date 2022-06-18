@@ -22,9 +22,7 @@ public:
     bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
     Mat() = default;;
 
-    Mat(int row, int col, T *list, int n);
-
-    Mat(int row, int col, bool isSparse = false); // construct an all zero matrix with x rows and y columns
+    Mat(int row, int col, std::vector<T> *list = nullptr, bool isSparse = false); // construct an all zero matrix with x rows and y columns
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
     void set(int x, int y, T val); // set Mat[x][y] to val
@@ -64,7 +62,7 @@ private:
 };
 
 template<class T>
-Mat<T>::Mat(int row, int col, bool isSparse) {
+Mat<T>::Mat(int row, int col, std::vector<T> *list, bool isSparse) {
     this->row = row;
     this->col = col;
     this->step = col;
@@ -76,6 +74,20 @@ Mat<T>::Mat(int row, int col, bool isSparse) {
         for (int i = 0; i < this->row; i++) {
             for (int j = 0; j < this->col; j++) {
                 this->pData[getIndex(i, j)] = 0;
+            }
+        }
+    }
+    if(list != nullptr){
+        int cnt = 0;
+        for(int i = 1; i <= row; i ++){
+            for(int j = 1; j <= col; j ++){
+                if(cnt < (*list).size()){
+                    this->set(i, j, (*list)[cnt]);
+                    cnt ++;
+                }
+                else{
+                    break;
+                }
             }
         }
     }
@@ -171,9 +183,9 @@ void Mat<T>::print(int w) {
         std::cout << "-";
     }
     std::cout << std::endl;
-    for (int i = 1; i <= this->col; i++) {
+    for (int i = 1; i <= this->row; i++) {
         std::cout << std::setw(w - 1) << std::left << i << "|" << std::right;
-        for (int j = 1; j <= this->row; j++) {
+        for (int j = 1; j <= this->col; j++) {
             std::cout << std::setw(w) << get(i, j) << " ";
         }
         std::cout << std::endl;
@@ -276,32 +288,10 @@ Mat<T> Mat<T>::transpose() {
     Mat<T> answer(col, row);
     for (int i = 1; i <= col; i++) {
         for (int j = 1; j <= row; j++) {
-            T tmp  = this->get(j, i);
-            answer.set(j, i, this->get(i, j));
-            answer.set(i, j, tmp);
+            answer.set(i, j, this->get(j, i));
         }
     }
     return answer;
-}
-
-template<class T>
-Mat<T>::Mat(int row, int col, T *list, int n) {
-    this->row = row;
-    this->col = col;
-    this->step = col;
-    this->isSparse = false;
-    if (n > row * col) throw (InvalidDimensionsException("InvalidDimensions"));
-    this->pData = std::shared_ptr<T[]>(new T[this->row * this->col]);
-    for (int i = 0; i < this->row; i++) {
-        for (int j = 0; j < this->col; j++) {
-            this->pData[getIndex(i, j)] = 0;
-        }
-    }
-    for (int i = 1; i <= row; ++i) {
-        for (int j = 1; j <= col; ++j) {
-            this->set(j, i, list[i - 1 + (j - 1) * this->step]);
-        }
-    }
 }
 
 template<class T2>
@@ -324,7 +314,7 @@ Mat<T2> operator-(Mat<T2> &lhs, Mat<T2> &rhs) {
     if (lhs.col != rhs.col || lhs.row != lhs.col || rhs.col != rhs.row)
         throw (InvalidDimensionsException("Matrix not matched needs for addition"));
 
-    Mat<T2> ans(lhs.row, lhs.row);
+    Mat<T2> ans(lhs.row, lhs.col);
     for (int i = 1; i <= lhs.row; ++i) {
         for (int j = 1; j <= lhs.col; ++j) {
             ans.set(i, j, lhs.get(i, j) - rhs.get(i, j));
@@ -336,7 +326,7 @@ Mat<T2> operator-(Mat<T2> &lhs, Mat<T2> &rhs) {
 
 template<class T2>
 Mat<T2> operator*(double lhs, Mat<T2> &rhs) {
-    Mat<T2> ans(rhs.row, rhs.row);
+    Mat<T2> ans(rhs.row, rhs.col);
     for (int i = 1; i <= rhs.row; ++i) {
         for (int j = 1; j <= rhs.col; ++j) {
             ans.set(i, j, rhs.get(i, j) * lhs);
@@ -348,7 +338,7 @@ Mat<T2> operator*(double lhs, Mat<T2> &rhs) {
 
 template<class T2>
 Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
-    Mat<T2> ans(rhs.row, rhs.row);
+    Mat<T2> ans(rhs.row, rhs.col);
     for (int i = 1; i <= rhs.row; ++i) {
         for (int j = 1; j <= rhs.col; ++j) {
             ans.set(i, j, rhs.get(i, j) * lhs);
@@ -416,7 +406,6 @@ int Mat<T2>::rank(){
         }
         re++;
     }
-    else break;
 
     return re;
 }
