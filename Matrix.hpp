@@ -55,6 +55,11 @@ public:
 
     void print(int width = 5); // print the matrix with specified width for each element
     Mat<T> clone(); // deep copy
+    
+
+private:
+    Mat<T> getsubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
+    void QR(Mat<T>& Q, Mat<T>& R); // 利用householder法进行QR分解，这个方法并不是很成熟，就不让外部调用了
 };
 
 template<class T>
@@ -352,5 +357,25 @@ Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
     return ans;
 }
 
+template<class T2>
+Mat<T2> Mat<T2>::getsubmatrix(int colstart, int colend, int rowstart, int rowend){
+    if(colend > colstart || rowend > rowstart ||
+        colend > this->col || rowend > this->row ||
+            colstart < 1 || rowend < 1)
+        throw(InvalidCoordinatesException("Coordinate for submatrix is out of bound."));
+
+    Mat<T2> ans(rowend - rowstart + 1, colend - colstart + 1);
+    for(int i = 0; i < ans.row; i++){
+        for(int j = 0; j < ans.col; j++){
+            ans.set(this->get(rowstart + i, colstart + j));
+        }
+    }
+    return ans;
+}
+
+template<class T2>
+void Mat<T2>::QR(Mat<T2>& Q, Mat<T2>& R){
+
+}
 
 #endif //MATRIX_MATRIX_HPP
