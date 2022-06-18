@@ -53,5 +53,13 @@ public:
 
 };
 
+class Determinant_NotSquareMatirx : public Exception {
+
+public:
+
+    Determinant_NotSquareMatirx(const std::string &message) : Exception(message) {}
+
+};
+
 
 #endif

@@ -64,12 +64,17 @@ public:
 
     void print(int width = 5); // print the matrix with specified width for each element
     Mat<T> clone(); // deep copy
+
+    Mat<T> gauss();
+
     int rank();
 
-    Mat<T> getsubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
+    Mat<T> getSubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
+
 private:
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
-    Mat<T> gaussianEliminate();
+
+
 };
 
 template<class T>
@@ -361,7 +366,7 @@ Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
 }
 
 template<class T2>
-Mat<T2> Mat<T2>::getsubmatrix(int rowstart, int rowend, int colstart, int colend) {
+Mat<T2> Mat<T2>::getSubmatrix(int rowstart, int rowend, int colstart, int colend) {
     if (colend > colstart || rowend > rowstart ||
         colend > this->col || rowend > this->row ||
         colstart < 1 || rowend < 1)
@@ -476,6 +481,56 @@ Mat<T> dotMuilt(Mat<T> &lhs, Mat<T> &rhs) {
         }
     }
     return Mat<T>(rhs.row, rhs.col, &list);
+}
+
+template<class T2>
+Mat<T2> Mat<T2>::gauss() {
+    Mat<T2> out = this->clone();
+    int i = 1;
+    int pivot = 1;
+    //out.print();
+    for (; i <= out.row && pivot <= out.col; i++, pivot++) {
+        if (i > out.col) {
+            break;
+        }
+
+        for (int k = i + 1; k <= out.row; k++) {
+            if (out.get(i, pivot) != 0) {
+                break;
+            } else if (out.get(k, pivot) != 0) {
+                for (int count = 1; count <= out.col; count++) {
+                    T2 mid = out.get(i, count);
+                    out.set(i, count, out.get(k, count));
+                    out.set(k, count, mid);
+                }
+                break;
+            }
+        }
+    }
+    //out.print();
+    for (i = 1; i <= out.row && i <= out.col; i++) {
+        for (int k = i + 1; k <= out.row; k++) {
+            if (out.get(i, i) == 0) {
+                break;
+            }
+            T2 a = -out.get(k, i) / out.get(i, i);
+            for (int count = 1; count <= out.col; count++) {
+                out.set(k, count, a * out.get(i, count) + out.get(k, count));
+            }
+        }
+    }
+
+    return out;
+}
+
+template<class T>
+int Mat<T>::rank() {
+    int res{};
+    Mat<T> resMat = this->gauss();
+    for (int i = 1; i <= this->row; ++i) {
+        if (resMat.get(i,this->col) != 0) res++;
+    }
+    return res;
 }
 
 #endif //MATRIX_MATRIX_HPP
