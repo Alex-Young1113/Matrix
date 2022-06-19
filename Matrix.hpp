@@ -124,8 +124,6 @@ public:
 
     Mat<T> inverse();
 
-private:
-
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
 
     void setZero();
