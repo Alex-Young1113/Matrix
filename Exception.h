@@ -53,11 +53,11 @@ public:
 
 };
 
-class Determinant_NotSquareMatirx : public Exception {
+class Determinant_NotSquareMatrix : public Exception {
 
 public:
 
-    explicit Determinant_NotSquareMatirx(const std::string &message) : Exception(message) {}
+    explicit Determinant_NotSquareMatrix(const std::string &message) : Exception(message) {}
 
 };
 

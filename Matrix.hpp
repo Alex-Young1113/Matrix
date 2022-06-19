@@ -18,6 +18,7 @@
 template<class T>
 class Mat {
     long long getIndex(int x, int y) const; // return the offset of Mat[x][y]
+    double EPS = 1e-9;
 public:
     std::shared_ptr<std::unordered_map<int, T>> pMap; // hashmap to store elements in sparse matrix
     std::shared_ptr<T[]> pData; // array to store elements in dense matrix
@@ -25,6 +26,7 @@ public:
     long long col = 0; // number of columns
     long long step = 0; // used for computing the index of next row
     bool isSparse = false; // 0 for dense matrix and 1 for sparse matrix
+
     Mat() = default;
 
     Mat(int row, int col, std::vector<T> *list = nullptr,
@@ -34,9 +36,6 @@ public:
     void set(int x, int y, T val); // set Mat[x][y] to val
     T get(int, int) const; // return Mat[x][y]
 
-    T max();
-
-    double EPS = 1e-9;
 
     Mat<T> transpose();
 
@@ -45,22 +44,28 @@ public:
     Mat<T> conv(Mat<T> &kernel);
 
     template<class T2>
-    friend Mat<T2> dotMuilt(Mat<T2> &lhs, Mat<T2> &rhs);
+    friend Mat<T2> dotMuilt(Mat<T2> const &lhs, Mat<T2> const &rhs);
 
     template<class T2>
-    friend Mat<T2> operator+(Mat<T2> &lhs, Mat<T2> &rhs);
+    friend Mat<T2> operator+(Mat<T2> const &lhs, Mat<T2> const &rhs);
 
     template<class T2>
-    friend Mat<T2> operator-(Mat<T2> &lhs, Mat<T2> &rhs);
+    friend Mat<T2> operator-(Mat<T2> const &lhs, Mat<T2> const &rhs);
 
     template<class T2>
-    friend Mat<T2> operator*(double lhs, Mat<T2> &rhs);
+    friend Mat<T2> operator*(double lhs, Mat<T2> const &rhs);
 
     template<class T2>
-    friend Mat<T2> operator*(Mat<T2> &lhs, double rhs);
+    friend Mat<T2> operator*(Mat<T2> const &lhs, double rhs);
 
     template<class T2>
-    friend Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs);
+    friend Mat<T2> operator*(Mat<T2> const &lhs, Mat<T2> const &rhs);
+
+    template<class T2>
+    friend Mat<T2> operator*(std::vector<T> const &lhs, Mat<T2> const &rhs);
+
+    template<class T2>
+    friend Mat<T2> operator*(Mat<T2> const &lhs, std::vector<T> const &rhs);
 
     T min();
 
@@ -68,7 +73,22 @@ public:
 
     T avg();
 
+    T max();
+
+    T minRow(int r);
+
+    T sumRow(int r);
+
+    T maxRow(int r);
+
+    T minCol(int c);
+
+    T sumCol(int c);
+
+    T maxCol(int c);
+
     void print(bool hasIndex = true, int width = 5); // print the matrix with specified width for each element
+
     Mat<T> clone(); // deep copy
 
     Mat<T> gauss();
@@ -105,11 +125,15 @@ public:
     Mat<T> inverse();
 
 private:
+
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
 
     void setZero();
 
     Mat<T> unitMatGen(int x);
+
+    void eigen(Mat<T> &value, Mat<T> &vector);
+
 };
 
 template<class T>
@@ -243,12 +267,18 @@ void Mat<T>::print(bool hasIndex, int w) {
         }
         std::cout << std::endl;
     } else {
+        std::cout << " \n " << '[' << std::right;
         for (int i = 1; i <= this->row; i++) {
+
             for (int j = 1; j <= this->col; j++) {
                 std::cout << std::setw(w) << get(i, j) << " ";
             }
+
+            if (i == this->row) { std::cout << ']' << std::right; }
+            else { std::cout << ',' << std::right; }
             std::cout << std::endl;
         }
+
     }
 }
 
@@ -430,11 +460,6 @@ Mat<T2> Mat<T2>::getSubmatrix(int rowstart, int rowend, int colstart, int colend
 }
 
 template<class T2>
-void Mat<T2>::QR(Mat<T2> &Q, Mat<T2> &R) {
-}
-
-
-template<class T2>
 Mat<T2> operator*(std::vector<T2> &lhs, Mat<T2> &rhs) {
     if (rhs.row == 1 && rhs.col == lhs.size()) {
         Mat<T2> ans(rhs.col, rhs.col);
@@ -464,7 +489,7 @@ Mat<T2> operator*(std::vector<T2> &lhs, Mat<T2> &rhs) {
 template<class T2>
 Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
     if (lhs.col != rhs.row) {
-        throw InvalidDimensionsException("");
+        throw (Multiply_DimensionsNotMatched(""));
     }
     Mat<T2> ans(lhs.row, rhs.col);
     for (int i = 1; i <= ans.row; i++) {
@@ -526,6 +551,8 @@ int Mat<T>::rank() {
 
 template<class T2>
 Mat<T2> Mat<T2>::gauss() {
+
+
     Mat<T2> out = this->clone();
     int i = 1;
     int pivot = 1;
@@ -556,7 +583,7 @@ Mat<T2> Mat<T2>::gauss() {
         for (int k = i; k <= out.row; k++) {
             if (out.get(k, i) > out.get(max, i)) max = k;
         }
-        if (fabs(out.get(max, i)) < 1e-10) continue;
+        if (fabs(out.get(max, i)) < EPS) continue;
         if (max != i) {
             for (int j = 1; j <= out.col; j++) {
                 T2 mid = out.get(i, j);
@@ -566,7 +593,7 @@ Mat<T2> Mat<T2>::gauss() {
         }
         //std::cout << "Test" << std::endl;
         for (int k = i + 1; k <= out.row; k++) {
-            if (fabs(out.get(i, i)) < 1e-10) {
+            if (fabs(out.get(i, i)) < EPS) {
                 break;
             }
             T2 a = -out.get(k, i) / out.get(i, i);
@@ -673,7 +700,7 @@ Mat<T> Mat<T>::getCominor(int x, int y) {
 
 template<class T>
 T Mat<T>::det() {
-    if (this->col != this->row) throw (Determinant_NotSquareMatirx(""));
+    if (this->col != this->row) throw (Determinant_NotSquareMatrix(""));
     int cnt{};
     T ans = 1;
     Mat<T> res = this->gauss(cnt);
@@ -694,7 +721,6 @@ double Mat<T>::trace() {
     }
     return ans;
 }
-
 
 template<class T>
 Mat<T> Mat<T>::inverse() {
@@ -770,13 +796,174 @@ Mat<double> ranMatGen(int x, int y, int start = 1, int end = 10) {
 }
 
 template<class T>
-Mat<T> Mat<T>::unitMatGen(int x) {
+Mat<T> unitMatGen(int x) {
     std::vector<T> list;
     for (int i = 0; i < x; ++i) {
         for (int j = 0; j < x; ++j) {
             if (i != j) list.template emplace_back(0);
+            else list.template emplace_back(1);
         }
     }
+    return Mat<T>(x, x, &list);
+}
+
+template<class T2>
+void Mat<T2>::QR(Mat<T2> &Q, Mat<T2> &R) {
+    Mat<T2> temp = this->clone();
+    if (Q.col != Q.row || R.col != R.row || Q.col != R.col)
+        throw (InvalidDimensionsException("Q or R size mismatch!"));
+
+    int i, j, k, m;
+    T2 u, alpha, w, t;
+    for (i = 1; i <= Q.col; i++) {
+        for (j = 1; j <= Q.row; j++) {
+            Q.set(i, j, 0);
+            if (i == j) Q.set(i, j, 1);
+        }
+    }
+
+    for (k = 1; k <= Q.col - 1; k++) {
+
+        T2 u = 0;
+        for (i = k; i <= Q.col; i++) {
+            w = fabs(temp.get(i, k));
+            if (w > u) u = w;
+        }
+        alpha = 0;
+
+        for (i = k; i <= Q.col; i++) {
+            t = temp.get(i, k) / u;
+            alpha = alpha + t * t;
+        }
+        if (temp.get(k, k) > 0) u = -u;
+        alpha = u * sqrt(alpha);
+        if (fabs(alpha) + 1.0 == 1.0) {
+            throw (InvalidCoordinatesException("QR分解失败!"));
+        }
+
+        u = sqrt(2 * alpha * (alpha - temp.get(k, k)));
+        if ((u + 1) != 1) {
+            temp.set(k, k, (temp.get(k, k) - alpha) / u);
+            for (i = k + 1; i <= Q.col; i++) temp.set(i, k, temp.get(i, k) / u);
+
+            for (j = 1; j <= Q.col; j++) {
+                t = 0;
+                for (m = k; m <= Q.col; m++)
+                    t = t + temp.get(m, k) * Q.get(m, j);
+                for (i = k; i <= Q.col; i++)
+                    Q.set(i, j, Q.get(i, j) - 2 * t * temp.get(i, k));
+            }
+
+            for (j = k + 1; j <= Q.col; j++) {
+                t = 0;
+                for (m = k; m <= Q.col; m++)
+                    t = t + temp.get(m, k) * temp.get(m, j);
+                for (i = k; i <= Q.col; i++)
+                    temp.set(i, j, temp.get(i, j) - 2 * t * temp.get(i, k));
+            }
+
+            temp.set(k, k, alpha);
+            for (i = k + 1; i <= Q.col; i++) temp.set(i, k, 0);
+        }
+    }
+
+    for (i = 1; i <= Q.col - 1; i++) {
+        for (j = i + 1; j <= Q.col; j++) {
+            t = Q.get(i, j);
+            Q.set(i, j, Q.get(j, i));
+            Q.set(j, i, t);
+        }
+    }
+
+    R = temp.clone();
+}
+
+template<class T2>
+void Mat<T2>::eigen(Mat<T2> &value, Mat<T2> &vector) {
+    Mat<T2> temp = this->clone();
+    if (temp.col != temp.row) {
+        throw (InvalidDimensionsException("Only square matrices have eigenvalues and eigenvectors."));
+    } else if (value.col != this->col || value.row != 1) {
+        throw (InvalidDimensionsException("Size of matrices for eigenvalue should be 1 X N."));
+    } else if (vector.col != vector.row || vector.row != this->row) {
+        throw (InvalidDimensionsException("Size for eigenvetor container mismatch"));
+    }
+
+    Mat<T2> Q(temp.row, temp.col);
+    Mat<T2> R(temp.row, temp.col);
+    for (int count = 1; count <= 50; count++) {
+        temp.QR(Q, R);
+        temp = R * Q;
+    }
+
+    for (int i = 1; i <= value.col; i++)
+        value.set(1, i, temp.get(i, i));
+
+    T2 evalue;
+    for (int i = 1; i <= value.col; i++) {
+        evalue = value.get(1, i);
+        temp = this->clone();
+        //temp.print();
+        for (int j = 1; j <= temp.col; j++)
+            temp.set(j, j, temp.get(j, j) - evalue);
+
+        //temp.print();
+        temp = temp.gauss();
+        //std::cout << "After gauss" << std::endl;
+        //temp.print();
+        for (int j = temp.col; j >= 1; j--) {
+            if (temp.get(j, j) != 0) {
+                for (int k = 1; k <= j - 1; k++) {
+                    T2 ratio = -temp.get(k, j) / temp.get(j, j);
+                    for (int count = 1; count <= temp.col; count++) {
+                        temp.set(k, count, temp.get(k, count) + ratio * temp.get(j, count));
+                    }
+                }
+            }
+        }
+        //std::cout << "Guass again" << std::endl;
+        //temp.print();
+        for (int j = 1; j <= vector.row; j++) {
+            vector.set(j, i, temp.get(j, j));
+        }
+    }
+
+}
+
+template<class T>
+T Mat<T>::minRow(int r) {
+    T min = this->get(1, 1);
+    for (int i = 1; i <= col; ++i) {
+        if (this->get(r, i) < min) min = this->get(r, i);
+    }
+    return min;
+}
+
+template<class T>
+T Mat<T>::minCol(int c) {
+    T min = this->get(1, 1);
+    for (int i = 1; i <= row; ++i) {
+        if (this->get(i, c) < min) min = this->get(i, c);
+    }
+    return min;
+}
+
+template<class T>
+T Mat<T>::maxCol(int c) {
+    T max = this->get(1, 1);
+    for (int i = 1; i <= row; ++i) {
+        if (this->get(i, c) > max) max = this->get(i, c);
+    }
+    return max;
+}
+
+template<class T>
+T Mat<T>::maxRow(int r) {
+    T max = this->get(1, 1);
+    for (int i = 1; i <= col; ++i) {
+        if (this->get(r, i) > max) max = this->get(r, i);
+    }
+    return max;
 }
 
 #endif //MATRIX_MATRIX_HPP
