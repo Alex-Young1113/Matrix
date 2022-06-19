@@ -32,7 +32,7 @@ class InvalidDimensionsException : public Exception {
 
 public:
 
-    InvalidDimensionsException(const std::string &message) : Exception(message) {}
+    explicit InvalidDimensionsException(const std::string &message) : Exception(message) {}
 
 };
 
@@ -41,7 +41,7 @@ class InvalidCoordinatesException : public Exception {
 
 public:
 
-    InvalidCoordinatesException(const std::string &message) : Exception(message) {}
+    explicit InvalidCoordinatesException(const std::string &message) : Exception(message) {}
 
 };
 
@@ -49,7 +49,7 @@ class Multiply_DimensionsNotMatched : public Exception {
 
 public:
 
-    Multiply_DimensionsNotMatched(const std::string &message) : Exception(message) {}
+    explicit Multiply_DimensionsNotMatched(const std::string &message) : Exception(message) {}
 
 };
 
@@ -57,9 +57,24 @@ class Determinant_NotSquareMatirx : public Exception {
 
 public:
 
-    Determinant_NotSquareMatirx(const std::string &message) : Exception(message) {}
+    explicit Determinant_NotSquareMatirx(const std::string &message) : Exception(message) {}
 
 };
 
+class Cominor_CoordinateExceedsBounds : public Exception {
+
+public:
+
+    explicit Cominor_CoordinateExceedsBounds(const std::string &message) : Exception(message) {}
+
+};
+
+class Trace_NotSquareMatrix : public Exception {
+
+public:
+
+    explicit Trace_NotSquareMatrix(const std::string &message) : Exception(message) {}
+
+};
 
 #endif

@@ -12,7 +12,7 @@
 
 template<class T>
 class Mat {
-    T getIndex(int x, int y); // return the offset of Mat[x][y]
+    T getIndex(int x, int y) const; // return the offset of Mat[x][y]
 public:
     std::shared_ptr<std::unordered_map<int, T>> pMap; // hashmap to store elements in sparse matrix
     std::shared_ptr<T[]> pData; // array to store elements in dense matrix
@@ -27,7 +27,7 @@ public:
     void toDense(); // convert mat to dense matrix
     void toSparse(); // convert mat to dense matrix
     void set(int x, int y, T val); // set Mat[x][y] to val
-    T get(int, int); // return Mat[x][y]
+    T get(int, int) const; // return Mat[x][y]
 
     T max();
 
@@ -67,12 +67,38 @@ public:
 
     Mat<T> gauss();
 
+    Mat<T> gauss(int &rowCount);
+
     int rank();
 
     Mat<T> getSubmatrix(int colstart, int colend, int rowstart, int rowend);    // 获取子矩阵，也是自用
 
+    Mat<T> getCominor(int x, int y);
+
+
+    std::vector<T> getRow(int l_row);
+
+    std::vector<T> getCol(int l_col);
+
+    T det();
+
+    operator std::vector<std::vector<T>>() const {
+        std::vector<std::vector<T>> ans;
+        for (int i = 0; i < this->row; ++i) {
+            std::vector<T> rowVec;
+            for (int j = 0; j < this->col; ++j) {
+                rowVec.template emplace_back(this->get(i + 1, j + 1));
+            }
+            ans.template emplace_back(rowVec);
+        }
+        return ans;
+    }
+
+    double trace();
+
 private:
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
+
 
 
 };
@@ -158,12 +184,12 @@ void Mat<T>::toSparse() {
 }
 
 template<class T>
-T Mat<T>::getIndex(int x, int y) {
+T Mat<T>::getIndex(int x, int y) const {
     return x * this->step + y;
 }
 
 template<class T>
-T Mat<T>::get(int x, int y) {
+T Mat<T>::get(int x, int y) const {
     if (x > this->row || y > this->col) {
         std::cerr << "index " << "(" << x << "," << y << ") " << "out of range " << "1-" << this->row << "," << "1-"
                   << this->col << std::endl;
@@ -484,11 +510,72 @@ Mat<T> dotMuilt(Mat<T> &lhs, Mat<T> &rhs) {
 }
 
 template<class T2>
+Mat<T2> Mat<T2>::gauss(int &cnt) {
+    Mat<T2> out = this->clone();
+    int i = 1;
+    int pivot = 1;
+    int l_cnt = 0;
+    //out.print();
+
+    for (; i <= out.row && pivot <= out.col; i++, pivot++) {
+        if (i > out.col) {
+            break;
+        }
+
+        for (int k = i + 1; k <= out.row; k++) {
+            if (out.get(i, pivot) != 0) {
+                break;
+            } else if (out.get(k, pivot) != 0) {
+                l_cnt++;
+                for (int count = 1; count <= out.col; count++) {
+                    T2 mid = out.get(i, count);
+                    out.set(i, count, out.get(k, count));
+                    out.set(k, count, mid);
+                }
+                break;
+            }
+        }
+    }
+    //out.print();
+
+    for (i = 1; i <= out.row && out.col; i++) {
+        int max = i;
+        for (int k = i; k <= out.row; k++) {
+            if (out.get(k, i) > out.get(max, i)) max = k;
+        }
+        if (fabs(out.get(max, i)) < 1e-10) continue;
+        if (max != i) {
+            l_cnt++;
+            for (int j = 1; j <= out.col; j++) {
+                T2 mid = out.get(i, j);
+                out.set(i, j, out.get(max, j));
+                out.set(max, j, mid);
+            }
+        }
+        //std::cout << "Test" << std::endl;
+        for (int k = i + 1; k <= out.row; k++) {
+            if (fabs(out.get(i, i)) < 1e-10) {
+                break;
+            }
+            T2 a = -out.get(k, i) / out.get(i, i);
+            l_cnt++;
+            for (int count = 1; count <= out.col; count++) {
+                out.set(k, count, a * out.get(i, count) + out.get(k, count));
+            }
+        }
+    }
+    cnt = l_cnt;
+    return out;
+}
+
+
+template<class T2>
 Mat<T2> Mat<T2>::gauss() {
     Mat<T2> out = this->clone();
     int i = 1;
     int pivot = 1;
     //out.print();
+
     for (; i <= out.row && pivot <= out.col; i++, pivot++) {
         if (i > out.col) {
             break;
@@ -508,9 +595,23 @@ Mat<T2> Mat<T2>::gauss() {
         }
     }
     //out.print();
-    for (i = 1; i <= out.row && i <= out.col; i++) {
+
+    for (i = 1; i <= out.row && out.col; i++) {
+        int max = i;
+        for (int k = i; k <= out.row; k++) {
+            if (out.get(k, i) > out.get(max, i)) max = k;
+        }
+        if (fabs(out.get(max, i)) < 1e-10) continue;
+        if (max != i) {
+            for (int j = 1; j <= out.col; j++) {
+                T2 mid = out.get(i, j);
+                out.set(i, j, out.get(max, j));
+                out.set(max, j, mid);
+            }
+        }
+        //std::cout << "Test" << std::endl;
         for (int k = i + 1; k <= out.row; k++) {
-            if (out.get(i, i) == 0) {
+            if (fabs(out.get(i, i)) < 1e-10) {
                 break;
             }
             T2 a = -out.get(k, i) / out.get(i, i);
@@ -523,14 +624,70 @@ Mat<T2> Mat<T2>::gauss() {
     return out;
 }
 
+
 template<class T>
 int Mat<T>::rank() {
     int res{};
     Mat<T> resMat = this->gauss();
     for (int i = 1; i <= this->row; ++i) {
-        if (resMat.get(i,this->col) != 0) res++;
+        if (resMat.get(i, this->col) != 0) res++;
     }
     return res;
+}
+
+template<class T>
+std::vector<T> Mat<T>::getRow(int l_row) {
+    std::vector<T> res;
+    for (int i = 1; i <= this->col; ++i) {
+        res.template emplace_back(this->get(l_row, i));
+    }
+    return res;
+}
+
+template<class T>
+std::vector<T> Mat<T>::getCol(int l_col) {
+    std::vector<T> res;
+    for (int i = 1; i <= this->row; ++i) {
+        res.template emplace_back(this->get(i, l_col));
+    }
+    return res;
+}
+
+template<class T>
+//获取代数余子式
+Mat<T> Mat<T>::getCominor(int x, int y) {
+    if (x > this->row || y > this->col) throw (Cominor_CoordinateExceedsBounds(""));
+    std::vector<T> res;
+    for (int i = 1; i <= this->row; ++i) {
+        for (int j = 1; j <= this->col; ++j) {
+            if (i != x || j != y) res.template emplace_back(this->get(i, j));
+        }
+    }
+    return Mat<T>(this->row - 1, this->col - 1, &res);
+}
+
+template<class T>
+T Mat<T>::det() {
+    if (this->col != this->row) throw (Determinant_NotSquareMatirx(""));
+    int cnt{};
+    T ans = 1;
+    Mat<T> res = this->gauss(cnt);
+    for (int i = 1; i <= this->col; ++i) {
+        ans *= res.get(i, i);
+    }
+    return pow(-1, cnt) * ans;
+}
+
+template<class T>
+double Mat<T>::trace() {
+    double ans{};
+    if (this->col != this->row) throw (Trace_NotSquareMatrix(""));
+    else {
+        for (int i = 0; i < this->row; ++i) {
+            ans += this->get(i+1,i+1);
+        }
+    }
+    return ans;
 }
 
 #endif //MATRIX_MATRIX_HPP
