@@ -93,4 +93,21 @@ public:
 
 };
 
+class Inverse_NotSquareMatrix : public Exception {
+
+public:
+
+    explicit Inverse_NotSquareMatrix(const std::string &message) : Exception(message) {}
+
+};
+
+class Inverse_NotInvertible : public Exception {
+
+public:
+
+    explicit Inverse_NotInvertible(const std::string &message) : Exception(message) {}
+
+};
+
+
 #endif

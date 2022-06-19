@@ -10,11 +10,6 @@
 #include <cmath>
 #include "Exception.h"
 
-template<typename T, typename U>
-struct decay_equiv :
-        std::is_same<typename std::decay<T>::type, U>::type {
-};
-
 template<class T>
 class Mat {
     long long getIndex(int x, int y) const; // return the offset of Mat[x][y]
@@ -36,6 +31,7 @@ public:
 
     T max();
 
+    double EPS = 1e-9;
 
     Mat<T> transpose();
 
@@ -101,11 +97,14 @@ public:
 
     double trace();
 
+    Mat<T> inverse();
+
 private:
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
 
 
 
+    void setZero();
 };
 
 template<class T>
@@ -261,10 +260,6 @@ Mat<T> Mat<T>::clone() {
 template<class T>
 /* return the maximum element of the matrix */
 T Mat<T>::max() {
-    if (!(decay_equiv<T, int>::value && decay_equiv<T, long>::value && decay_equiv<T, long long>::value &&
-          decay_equiv<T, double>::value &&
-          decay_equiv<T, float>::value))
-        throw (ClassTypeNotSupport(""));
     T max = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
@@ -279,10 +274,6 @@ T Mat<T>::max() {
 template<class T>
 /*return the minimum value of the matrix */
 T Mat<T>::min() {
-    if (!(decay_equiv<T, int>::value && decay_equiv<T, long>::value && decay_equiv<T, long long>::value &&
-          decay_equiv<T, double>::value &&
-          decay_equiv<T, float>::value))
-        throw (ClassTypeNotSupport(""));
     T min = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
@@ -388,7 +379,7 @@ Mat<T2> operator*(double lhs, Mat<T2> &rhs) {
             ans.set(i, j, rhs.get(i, j) * lhs);
         }
     }
-
+    ans.setZero();
     return ans;
 }
 
@@ -401,6 +392,7 @@ Mat<T2> operator*(Mat<T2> &rhs, double lhs) {
         }
     }
 
+    ans.setZero();
     return ans;
 }
 
@@ -470,6 +462,7 @@ Mat<T2> operator*(Mat<T2> lhs, Mat<T2> rhs) {
             ans.set(i, j, sum);
         }
     }
+    ans.setZero();
     return ans;
 }
 
@@ -495,32 +488,83 @@ Mat<T> Mat<T>::resize(int x, int y) {
     return ans;
 }
 
-template<class T2>
-Mat<T2> operator*(Mat<T2> &lhs, std::vector<T2> &rhs) {
-    if (lhs.col == 1 && lhs.col == rhs.size()) {
-        Mat<T2> rhsMat(1, rhs.size(), &rhs);
-        return lhs * rhsMat;
-    } else if (lhs.col != 1 && lhs.col == rhs.size()) {
-        Mat<T2> rhsMat(rhs.size(), 1, &rhs);
-        return lhs * rhsMat;
-    } else {
-        std::cerr << "Dimension not matched for multiply" << "\n";
-        throw (Multiply_DimensionsNotMatched(""));
-    }
-}
+//template <class T>
+//cv::Mat Mat<T>::toOpencv() {
+//    cv::Mat ans(this->row, this->col, CV_64F);
+//    for (int i = 1; i <= this->row; i++) {
+//        for (int j = 1; j <= this->col; j++) {
+//            ans.at<double>(i - 1, j - 1) = this->get(i, j);
+//        }
+//    }
+//    return Mat<T>(rhs.row, rhs.col, &list);
+//}
 
 template<class T>
-Mat<T> dotMuilt(Mat<T> &lhs, Mat<T> &rhs) {
-    if (lhs.row != rhs.row || lhs.col != rhs.col)
-        throw (Multiply_DimensionsNotMatched(""));
-    std::vector<T> list;
-    for (int i = 0; i < lhs.row; ++i) {
-        for (int j = 0; j < lhs.col; ++j) {
-            list.template emplace_back(lhs.get(i + 1, j + 1) * rhs.get(i + 1, j + 1));
+int Mat<T>::rank() {
+    int res{};
+    Mat<T> resMat = this->gauss();
+    for (int i = 1; i <= this->row; ++i) {
+        if (resMat.get(i, this->col) != 0) res++;
+    }
+    return res;
+}
+
+
+template<class T2>
+Mat<T2> Mat<T2>::gauss() {
+    Mat<T2> out = this->clone();
+    int i = 1;
+    int pivot = 1;
+    //out.print();
+
+    for (; i <= out.row && pivot <= out.col; i++, pivot++) {
+        if (i > out.col) {
+            break;
+        }
+
+        for (int k = i + 1; k <= out.row; k++) {
+            if (out.get(i, pivot) != 0) {
+                break;
+            } else if (out.get(k, pivot) != 0) {
+                for (int count = 1; count <= out.col; count++) {
+                    T2 mid = out.get(i, count);
+                    out.set(i, count, out.get(k, count));
+                    out.set(k, count, mid);
+                }
+                break;
+            }
         }
     }
-    return Mat<T>(rhs.row, rhs.col, &list);
+    //out.print();
+
+    for (i = 1; i <= out.row && out.col; i++) {
+        int max = i;
+        for (int k = i; k <= out.row; k++) {
+            if (out.get(k, i) > out.get(max, i)) max = k;
+        }
+        if (fabs(out.get(max, i)) < 1e-10) continue;
+        if (max != i) {
+            for (int j = 1; j <= out.col; j++) {
+                T2 mid = out.get(i, j);
+                out.set(i, j, out.get(max, j));
+                out.set(max, j, mid);
+            }
+        }
+        //std::cout << "Test" << std::endl;
+        for (int k = i + 1; k <= out.row; k++) {
+            if (fabs(out.get(i, i)) < 1e-10) {
+                break;
+            }
+            T2 a = -out.get(k, i) / out.get(i, i);
+            for (int count = 1; count <= out.col; count++) {
+                out.set(k, count, a * out.get(i, count) + out.get(k, count));
+            }
+        }
+    }
+    out.setZero();
+    return out;
 }
+
 
 template<class T2>
 Mat<T2> Mat<T2>::gauss(int &cnt) {
@@ -577,75 +621,9 @@ Mat<T2> Mat<T2>::gauss(int &cnt) {
             }
         }
     }
+    out.setZero();
     cnt = l_cnt;
     return out;
-}
-
-
-template<class T2>
-Mat<T2> Mat<T2>::gauss() {
-    Mat<T2> out = this->clone();
-    int i = 1;
-    int pivot = 1;
-    //out.print();
-
-    for (; i <= out.row && pivot <= out.col; i++, pivot++) {
-        if (i > out.col) {
-            break;
-        }
-
-        for (int k = i + 1; k <= out.row; k++) {
-            if (out.get(i, pivot) != 0) {
-                break;
-            } else if (out.get(k, pivot) != 0) {
-                for (int count = 1; count <= out.col; count++) {
-                    T2 mid = out.get(i, count);
-                    out.set(i, count, out.get(k, count));
-                    out.set(k, count, mid);
-                }
-                break;
-            }
-        }
-    }
-    //out.print();
-
-    for (i = 1; i <= out.row && out.col; i++) {
-        int max = i;
-        for (int k = i; k <= out.row; k++) {
-            if (out.get(k, i) > out.get(max, i)) max = k;
-        }
-        if (fabs(out.get(max, i)) < 1e-10) continue;
-        if (max != i) {
-            for (int j = 1; j <= out.col; j++) {
-                T2 mid = out.get(i, j);
-                out.set(i, j, out.get(max, j));
-                out.set(max, j, mid);
-            }
-        }
-        //std::cout << "Test" << std::endl;
-        for (int k = i + 1; k <= out.row; k++) {
-            if (fabs(out.get(i, i)) < 1e-10) {
-                break;
-            }
-            T2 a = -out.get(k, i) / out.get(i, i);
-            for (int count = 1; count <= out.col; count++) {
-                out.set(k, count, a * out.get(i, count) + out.get(k, count));
-            }
-        }
-    }
-
-    return out;
-}
-
-
-template<class T>
-int Mat<T>::rank() {
-    int res{};
-    Mat<T> resMat = this->gauss();
-    for (int i = 1; i <= this->row; ++i) {
-        if (resMat.get(i, this->col) != 0) res++;
-    }
-    return res;
 }
 
 template<class T>
@@ -703,5 +681,68 @@ double Mat<T>::trace() {
     return ans;
 }
 
+
+template<class T>
+Mat<T> Mat<T>::inverse() {
+    if (this->row != this->col) {
+        throw Inverse_NotSquareMatrix("error: calculate the inverse of a non-square matrix");
+    }
+    int n = this->row;
+    Mat<T> a(n, 2 * n);
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            a.set(i, j, this->get(i, j));
+        }
+    }
+    /* Augmenting Identity Matrix of Order n */
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (i == j) {
+                a.set(i, j + n, 1);
+            } else {
+                a.set(i, j + n, 0);
+            }
+        }
+    }
+
+    /* Applying Gauss Jordan Elimination */
+    for (int i = 1; i <= n; i++) {
+        if (a.get(i, i) == 0) {
+            std::cout << "Mathematical Error!";
+            throw (Inverse_NotInvertible(""));
+        }
+        for (int j = 1; j <= n; j++) {
+            if (i != j) {
+                double ratio = a.get(j, i) / a.get(i, i);
+                for (int k = 1; k <= 2 * n; k++) {
+                    a.set(j, k, a.get(j, k) - ratio * a.get(i, k));
+                }
+            }
+        }
+    }
+    /* Row Operation to Make Principal Diagonal to 1 */
+    for (int i = 1; i <= n; i++) {
+        for (int j = n + 1; j <= 2 * n; j++) {
+            a.set(i, j, a.get(i, j) / a.get(i, i));
+        }
+    }
+
+    Mat<T> rt(n, n);
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            rt.set(i, j, a.get(i, j + n));
+        }
+    }
+    return rt;
+}
+
+template<class T>
+void Mat<T>::setZero() {
+    for (int i = 1; i <= row; ++i) {
+        for (int j = 1; j <= col; ++j) {
+            if (abs(this->get(i, j)) < EPS) this->set(i, j, 0);
+        }
+    }
+}
 
 #endif //MATRIX_MATRIX_HPP
