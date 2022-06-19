@@ -10,9 +10,14 @@
 #include <cmath>
 #include "Exception.h"
 
+template<typename T, typename U>
+struct decay_equiv :
+        std::is_same<typename std::decay<T>::type, U>::type {
+};
+
 template<class T>
 class Mat {
-    T getIndex(int x, int y) const; // return the offset of Mat[x][y]
+    long long getIndex(int x, int y) const; // return the offset of Mat[x][y]
 public:
     std::shared_ptr<std::unordered_map<int, T>> pMap; // hashmap to store elements in sparse matrix
     std::shared_ptr<T[]> pData; // array to store elements in dense matrix
@@ -184,7 +189,7 @@ void Mat<T>::toSparse() {
 }
 
 template<class T>
-T Mat<T>::getIndex(int x, int y) const {
+long long Mat<T>::getIndex(int x, int y) const {
     return x * this->step + y;
 }
 
@@ -256,6 +261,10 @@ Mat<T> Mat<T>::clone() {
 template<class T>
 /* return the maximum element of the matrix */
 T Mat<T>::max() {
+    if (!(decay_equiv<T, int>::value && decay_equiv<T, long>::value && decay_equiv<T, long long>::value &&
+          decay_equiv<T, double>::value &&
+          decay_equiv<T, float>::value))
+        throw (ClassTypeNotSupport(""));
     T max = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
@@ -270,6 +279,10 @@ T Mat<T>::max() {
 template<class T>
 /*return the minimum value of the matrix */
 T Mat<T>::min() {
+    if (!(decay_equiv<T, int>::value && decay_equiv<T, long>::value && decay_equiv<T, long long>::value &&
+          decay_equiv<T, double>::value &&
+          decay_equiv<T, float>::value))
+        throw (ClassTypeNotSupport(""));
     T min = this->get(1, 1);
     for (int i = 1; i <= this->row; i++) {
         for (int j = 1; j <= this->col; j++) {
@@ -340,7 +353,7 @@ Mat<T> Mat<T>::transpose() {
 template<class T2>
 Mat<T2> operator+(Mat<T2> &lhs, Mat<T2> &rhs) {
     if (lhs.col != rhs.col || lhs.row != lhs.col || rhs.col != rhs.row)
-        throw (InvalidDimensionsException("Matrix not matched needs for addition"));
+        throw (Addition_DimensionNotMatched("Matrix not matched needs for addition"));
 
     Mat<T2> ans(lhs.row, lhs.row);
     for (int i = 1; i <= lhs.row; ++i) {
@@ -355,7 +368,7 @@ Mat<T2> operator+(Mat<T2> &lhs, Mat<T2> &rhs) {
 template<class T2>
 Mat<T2> operator-(Mat<T2> &lhs, Mat<T2> &rhs) {
     if (lhs.col != rhs.col || lhs.row != lhs.col || rhs.col != rhs.row)
-        throw (InvalidDimensionsException("Matrix not matched needs for addition"));
+        throw (Addition_DimensionNotMatched("Matrix not matched needs for addition"));
 
     Mat<T2> ans(lhs.row, lhs.col);
     for (int i = 1; i <= lhs.row; ++i) {
@@ -684,10 +697,11 @@ double Mat<T>::trace() {
     if (this->col != this->row) throw (Trace_NotSquareMatrix(""));
     else {
         for (int i = 0; i < this->row; ++i) {
-            ans += this->get(i+1,i+1);
+            ans += this->get(i + 1, i + 1);
         }
     }
     return ans;
 }
+
 
 #endif //MATRIX_MATRIX_HPP

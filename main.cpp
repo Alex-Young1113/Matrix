@@ -1,5 +1,6 @@
 #include "Matrix.hpp"
 #include <iostream>
+#include <complex>
 
 
 using namespace std;
@@ -20,6 +21,12 @@ int main() {
     cout << i << "\n";
     cout << mat1.det() << "\n" << mat1.trace();
     vector<vector<double>> vec = (vector<vector<double>>) mat1;
-
+    std::complex<double> com(1, 1);
+    vector<complex<double>> li;
+    for (int j = 0; j < 4; ++j) {
+        li.emplace_back(com);
+    }
+    Mat<std::complex<double>> matComp(2, 2, &li);
+    matComp.print();
     return 0;
 }

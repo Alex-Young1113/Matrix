@@ -77,4 +77,20 @@ public:
 
 };
 
+class Addition_DimensionNotMatched : public Exception {
+
+public:
+
+    explicit Addition_DimensionNotMatched(const std::string &message) : Exception(message) {}
+
+};
+
+class ClassTypeNotSupport : public Exception {
+
+public:
+
+    explicit ClassTypeNotSupport(const std::string &message) : Exception(message) {}
+
+};
+
 #endif
