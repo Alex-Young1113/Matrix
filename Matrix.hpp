@@ -581,7 +581,7 @@ Mat<T2> Mat<T2>::gauss() {
     for (i = 1; i <= out.row && out.col; i++) {
         int max = i;
         for (int k = i; k <= out.row; k++) {
-            if (out.get(k, i) > out.get(max, i)) max = k;
+            if (fabs(out.get(k, i)) > fabs(out.get(max, i))) max = k;
         }
         if (fabs(out.get(max, i)) < EPS) continue;
         if (max != i) {
@@ -639,9 +639,9 @@ Mat<T2> Mat<T2>::gauss(int &cnt) {
     for (i = 1; i <= out.row && out.col; i++) {
         int max = i;
         for (int k = i; k <= out.row; k++) {
-            if (out.get(k, i) > out.get(max, i)) max = k;
+            if (fabs(out.get(k, i)) > fabs(out.get(max, i))) max = k;
         }
-        if (fabs(out.get(max, i)) < 1e-10) continue;
+        if (fabs(out.get(max, i)) < EPS) continue;
         if (max != i) {
             l_cnt++;
             for (int j = 1; j <= out.col; j++) {
@@ -652,7 +652,7 @@ Mat<T2> Mat<T2>::gauss(int &cnt) {
         }
         //std::cout << "Test" << std::endl;
         for (int k = i + 1; k <= out.row; k++) {
-            if (fabs(out.get(i, i)) < 1e-10) {
+            if (fabs(out.get(i, i)) < EPS) {
                 break;
             }
             T2 a = -out.get(k, i) / out.get(i, i);
