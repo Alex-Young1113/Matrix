@@ -1,6 +1,11 @@
 #ifndef MATRIX_MATRIX_HPP
 #define MATRIX_MATRIX_HPP
 
+#include <cstdlib>
+#include <ctime>
+
+#define random(a, b) (rand()%(b-a)+a)
+
 #include <unordered_map>
 #include <memory>
 #include <cstddef>
@@ -63,7 +68,7 @@ public:
 
     T avg();
 
-    void print(int width = 5); // print the matrix with specified width for each element
+    void print(bool hasIndex = true, int width = 5); // print the matrix with specified width for each element
     Mat<T> clone(); // deep copy
 
     Mat<T> gauss();
@@ -102,9 +107,9 @@ public:
 private:
     void QR(Mat<T> &Q, Mat<T> &R); // 利用施密特正交化进行QR分解，这个方法并不是很成熟，就不让外部调用了
 
-
-
     void setZero();
+
+    Mat<T> unitMatGen(int x);
 };
 
 template<class T>
@@ -213,29 +218,38 @@ T Mat<T>::get(int x, int y) const {
 }
 
 template<class T>
-void Mat<T>::print(int w) {
-    for (int i = 1; i <= w; i++) {
-        std::cout << " ";
-    }
-    for (int i = 1; i <= this->col; i++) {
-        std::cout << std::setw(w) << i << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 1; i <= w; i++) {
-        std::cout << " ";
-    }
-    for (int i = 1; i <= (long long) (w + 1) * (long long) (this->col); i++) {
-        std::cout << "-";
-    }
-    std::cout << std::endl;
-    for (int i = 1; i <= this->row; i++) {
-        std::cout << std::setw(w - 1) << std::left << i << "|" << std::right;
-        for (int j = 1; j <= this->col; j++) {
-            std::cout << std::setw(w) << get(i, j) << " ";
+void Mat<T>::print(bool hasIndex, int w) {
+    if (hasIndex) {
+        for (int i = 1; i <= w; i++) {
+            std::cout << " ";
+        }
+        for (int i = 1; i <= this->col; i++) {
+            std::cout << std::setw(w) << i << " ";
         }
         std::cout << std::endl;
+        for (int i = 1; i <= w; i++) {
+            std::cout << " ";
+        }
+        for (int i = 1; i <= (long long) (w + 1) * (long long) (this->col); i++) {
+            std::cout << "-";
+        }
+        std::cout << std::endl;
+        for (int i = 1; i <= this->row; i++) {
+            std::cout << std::setw(w - 1) << std::left << i << "|" << std::right;
+            for (int j = 1; j <= this->col; j++) {
+                std::cout << std::setw(w) << get(i, j) << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    } else {
+        for (int i = 1; i <= this->row; i++) {
+            for (int j = 1; j <= this->col; j++) {
+                std::cout << std::setw(w) << get(i, j) << " ";
+            }
+            std::cout << std::endl;
+        }
     }
-    std::cout << std::endl;
 }
 
 template<class T>
@@ -740,7 +754,27 @@ template<class T>
 void Mat<T>::setZero() {
     for (int i = 1; i <= row; ++i) {
         for (int j = 1; j <= col; ++j) {
-            if (abs(this->get(i, j)) < EPS) this->set(i, j, 0);
+            if (fabs(this->get(i, j)) < EPS) this->set(i, j, 0.0);
+        }
+    }
+}
+
+Mat<double> ranMatGen(int x, int y, int start = 1, int end = 10) {
+    std::vector<double> list;
+    for (int i = 0; i < x; ++i) {
+        for (int j = 0; j < y; ++j) {
+            list.emplace_back(random(start, end));
+        }
+    }
+    return Mat<double>(x, y, &list);
+}
+
+template<class T>
+Mat<T> Mat<T>::unitMatGen(int x) {
+    std::vector<T> list;
+    for (int i = 0; i < x; ++i) {
+        for (int j = 0; j < x; ++j) {
+            if (i != j) list.template emplace_back(0);
         }
     }
 }
